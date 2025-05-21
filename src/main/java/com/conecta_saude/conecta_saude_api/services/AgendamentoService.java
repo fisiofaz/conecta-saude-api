@@ -1,15 +1,15 @@
 package com.conecta_saude.conecta_saude_api.services;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.conecta_saude.conecta_saude_api.models.Agendamento;
 import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AgendamentoService {
