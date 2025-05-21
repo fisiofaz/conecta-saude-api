@@ -1,23 +1,17 @@
 package com.conecta_saude.conecta_saude_api.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Set;
-import lombok.Builder;
+import java.util.Objects; 
 
 @Entity
 @DiscriminatorValue("PROFISSIONAL")
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 public class ProfissionalDeSaude extends User {
 
 	@Column(name = "nome")
 	private String nome;
-	
+
 	@Column(name = "sobrenome")
     private String sobrenome;
 
@@ -26,7 +20,7 @@ public class ProfissionalDeSaude extends User {
 
     @Column(name = "crm_crp_outros", unique = true)
     private String crmCrpOutros;
-    
+
     @Column(name = "telefone")
     private String telefone;
 
@@ -57,7 +51,11 @@ public class ProfissionalDeSaude extends User {
     @Column(name = "servicos_oferecidos", columnDefinition = "TEXT")
     private String servicosOferecidos;
 
-    @Builder
+    public ProfissionalDeSaude() {
+        super(); 
+    }
+
+   
     public ProfissionalDeSaude(
             Long id, String email, String password, boolean enabled,
             LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> roles,
@@ -66,7 +64,7 @@ public class ProfissionalDeSaude extends User {
             String estadoConsultorio, String cepConsultorio, String sobreMim,
             String fotoPerfilUrl, String acessibilidadeConsultorio, String idiomasComunicacao,
             String servicosOferecidos) {
-            super(id, email, password, enabled, createdAt, updatedAt, roles);
+            super(id, email, password, enabled, createdAt, updatedAt, roles); 
             this.nome = nome;
             this.sobrenome = sobrenome;
             this.especialidade = especialidade;
@@ -82,4 +80,144 @@ public class ProfissionalDeSaude extends User {
             this.idiomasComunicacao = idiomasComunicacao;
             this.servicosOferecidos = servicosOferecidos;
         }
+
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getSobrenome() {
+        return sobrenome;
+    }
+
+    public void setSobrenome(String sobrenome) {
+        this.sobrenome = sobrenome;
+    }
+
+    public String getEspecialidade() {
+        return especialidade;
+    }
+
+    public void setEspecialidade(String especialidade) {
+        this.especialidade = especialidade;
+    }
+
+    public String getCrmCrpOutros() {
+        return crmCrpOutros;
+    }
+
+    public void setCrmCrpOutros(String crmCrpOutros) {
+        this.crmCrpOutros = crmCrpOutros;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public String getEnderecoConsultorio() {
+        return enderecoConsultorio;
+    }
+
+    public void setEnderecoConsultorio(String enderecoConsultorio) {
+        this.enderecoConsultorio = enderecoConsultorio;
+    }
+
+    public String getCidadeConsultorio() {
+        return cidadeConsultorio;
+    }
+
+    public void setCidadeConsultorio(String cidadeConsultorio) {
+        this.cidadeConsultorio = cidadeConsultorio;
+    }
+
+    public String getEstadoConsultorio() {
+        return estadoConsultorio;
+    }
+
+    public void setEstadoConsultorio(String estadoConsultorio) {
+        this.estadoConsultorio = estadoConsultorio;
+    }
+
+    public String getCepConsultorio() {
+        return cepConsultorio;
+    }
+
+    public void setCepConsultorio(String cepConsultorio) {
+        this.cepConsultorio = cepConsultorio;
+    }
+
+    public String getSobreMim() {
+        return sobreMim;
+    }
+
+    public void setSobreMim(String sobreMim) {
+        this.sobreMim = sobreMim;
+    }
+
+    public String getFotoPerfilUrl() {
+        return fotoPerfilUrl;
+    }
+
+    public void setFotoPerfilUrl(String fotoPerfilUrl) {
+        this.fotoPerfilUrl = fotoPerfilUrl;
+    }
+
+    public String getAcessibilidadeConsultorio() {
+        return acessibilidadeConsultorio;
+    }
+
+    public void setAcessibilidadeConsultorio(String acessibilidadeConsultorio) {
+        this.acessibilidadeConsultorio = acessibilidadeConsultorio;
+    }
+
+    public String getIdiomasComunicacao() {
+        return idiomasComunicacao;
+    }
+
+    public void setIdiomasComunicacao(String idiomasComunicacao) {
+        this.idiomasComunicacao = idiomasComunicacao;
+    }
+
+    public String getServicosOferecidos() {
+        return servicosOferecidos;
+    }
+
+    public void setServicosOferecidos(String servicosOferecidos) {
+        this.servicosOferecidos = servicosOferecidos;
+    }
+
+    
+    public boolean equals(Object o) {
+        if (this == o) return true;        
+        if (!super.equals(o)) return false;
+        if (getClass() != o.getClass()) return false;
+        ProfissionalDeSaude that = (ProfissionalDeSaude) o;
+        return Objects.equals(especialidade, that.especialidade) &&
+               Objects.equals(crmCrpOutros, that.crmCrpOutros); 
+    }
+
+    @Override
+    public int hashCode() {
+        
+        return Objects.hash(super.hashCode(), especialidade, crmCrpOutros);
+    }
+
+    @Override
+    public String toString() {
+        return "ProfissionalDeSaude{" +
+               "id=" + getId() + 
+               ", email='" + getEmail() + '\'' + 
+               ", nome='" + nome + '\'' +
+               ", especialidade='" + especialidade + '\'' +
+               ", crmCrpOutros='" + crmCrpOutros + '\'' +
+               '}';
+    }
 }

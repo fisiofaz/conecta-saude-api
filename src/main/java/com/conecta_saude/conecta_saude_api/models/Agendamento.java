@@ -1,20 +1,16 @@
 package com.conecta_saude.conecta_saude_api.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "agendamentos", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"data_agendamento", "hora_agendamento", "profissional_saude_id"})
 }) 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 public class Agendamento {
 
     @Id
@@ -51,6 +47,106 @@ public class Agendamento {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    public Agendamento() {
+    }
+    
+    public Agendamento(Long id, UsuarioPCD usuarioPCD, ProfissionalDeSaude profissionalSaude,
+            LocalDate dataAgendamento, LocalTime horaAgendamento, String status,
+            String observacoesUsuario, String observacoesProfissional,
+            LocalDateTime createdAt, LocalDateTime updatedAt) {
+		this.id = id;
+		this.usuarioPCD = usuarioPCD;
+		this.profissionalSaude = profissionalSaude;
+		this.dataAgendamento = dataAgendamento;
+		this.horaAgendamento = horaAgendamento;
+		this.status = status;
+		this.observacoesUsuario = observacoesUsuario;
+		this.observacoesProfissional = observacoesProfissional;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+	}
+    
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public UsuarioPCD getUsuarioPCD() {
+        return usuarioPCD;
+    }
+
+    public void setUsuarioPCD(UsuarioPCD usuarioPCD) {
+        this.usuarioPCD = usuarioPCD;
+    }
+
+    public ProfissionalDeSaude getProfissionalSaude() {
+        return profissionalSaude;
+    }
+
+    public void setProfissionalSaude(ProfissionalDeSaude profissionalSaude) {
+        this.profissionalSaude = profissionalSaude;
+    }
+
+    public LocalDate getDataAgendamento() {
+        return dataAgendamento;
+    }
+
+    public void setDataAgendamento(LocalDate dataAgendamento) {
+        this.dataAgendamento = dataAgendamento;
+    }
+
+    public LocalTime getHoraAgendamento() {
+        return horaAgendamento;
+    }
+
+    public void setHoraAgendamento(LocalTime horaAgendamento) {
+        this.horaAgendamento = horaAgendamento;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getObservacoesUsuario() {
+        return observacoesUsuario;
+    }
+
+    public void setObservacoesUsuario(String observacoesUsuario) {
+        this.observacoesUsuario = observacoesUsuario;
+    }
+
+    public String getObservacoesProfissional() {
+        return observacoesProfissional;
+    }
+
+    public void setObservacoesProfissional(String observacoesProfissional) {
+        this.observacoesProfissional = observacoesProfissional;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 
     @PrePersist
     protected void onCreate() {
@@ -61,5 +157,29 @@ public class Agendamento {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+ 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Agendamento that = (Agendamento) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Agendamento{" +
+               "id=" + id +
+               ", dataAgendamento=" + dataAgendamento +
+               ", horaAgendamento=" + horaAgendamento +
+               ", status='" + status + '\'' +
+               '}';
     }
 }
