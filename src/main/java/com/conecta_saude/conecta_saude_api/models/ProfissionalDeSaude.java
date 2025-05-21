@@ -9,7 +9,7 @@ import java.util.Set;
 import lombok.Builder;
 
 @Entity
-@Table(name = "profissionais_saude")
+@DiscriminatorValue("PROFISSIONAL")
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -59,27 +59,27 @@ public class ProfissionalDeSaude extends User {
 
     @Builder
     public ProfissionalDeSaude(
-        Long id, String email, String password, boolean enabled,
-        LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> roles, 
-        String nome, String sobrenome, String especialidade, String crmCrpOutros,
-        String telefone, String enderecoConsultorio, String cidadeConsultorio,
-        String estadoConsultorio, String cepConsultorio, String sobreMim,
-        String fotoPerfilUrl, String acessibilidadeConsultorio, String idiomasComunicacao,
-        String servicosOferecidos) {
-        super(id, email, password, enabled, createdAt, updatedAt, roles); 
-        this.nome = nome;
-        this.sobrenome = sobrenome;
-        this.especialidade = especialidade;
-        this.crmCrpOutros = crmCrpOutros;
-        this.telefone = telefone;
-        this.enderecoConsultorio = enderecoConsultorio;
-        this.cidadeConsultorio = cidadeConsultorio;
-        this.estadoConsultorio = estadoConsultorio;
-        this.cepConsultorio = cepConsultorio;
-        this.sobreMim = sobreMim;
-        this.fotoPerfilUrl = fotoPerfilUrl;
-        this.acessibilidadeConsultorio = acessibilidadeConsultorio;
-        this.idiomasComunicacao = idiomasComunicacao;
-        this.servicosOferecidos = servicosOferecidos;
-    }
+            Long id, String email, String password, boolean enabled,
+            LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> roles,
+            String nome, String sobrenome, String especialidade, String crmCrpOutros,
+            String telefone, String enderecoConsultorio, String cidadeConsultorio,
+            String estadoConsultorio, String cepConsultorio, String sobreMim,
+            String fotoPerfilUrl, String acessibilidadeConsultorio, String idiomasComunicacao,
+            String servicosOferecidos) {
+            super(id, email, password, enabled, createdAt, updatedAt, roles);
+            this.nome = nome;
+            this.sobrenome = sobrenome;
+            this.especialidade = especialidade;
+            this.crmCrpOutros = crmCrpOutros;
+            this.telefone = telefone;
+            this.enderecoConsultorio = enderecoConsultorio;
+            this.cidadeConsultorio = cidadeConsultorio;
+            this.estadoConsultorio = estadoConsultorio;
+            this.cepConsultorio = cepConsultorio;
+            this.sobreMim = sobreMim;
+            this.fotoPerfilUrl = fotoPerfilUrl;
+            this.acessibilidadeConsultorio = acessibilidadeConsultorio;
+            this.idiomasComunicacao = idiomasComunicacao;
+            this.servicosOferecidos = servicosOferecidos;
+        }
 }

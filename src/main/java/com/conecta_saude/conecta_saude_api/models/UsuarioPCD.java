@@ -10,7 +10,7 @@ import java.util.Set;
 import lombok.Builder;
 
 @Entity
-@Table(name = "usuarios_pcd")
+@DiscriminatorValue("PCD")
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -48,21 +48,21 @@ public class UsuarioPCD extends User {
 
     @Builder
     public UsuarioPCD(
-        Long id, String email, String password, boolean enabled,
-        LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> roles, 
-        String nome, String sobrenome, LocalDate dataNascimento, String telefone,
-        String tipoDeficiencia, String necessidadesEspecificas, String endereco,
-        String cidade, String estado, String cep) {
-        super(id, email, password, enabled, createdAt, updatedAt, roles); 
-        this.nome = nome;
-        this.sobrenome = sobrenome;
-        this.dataNascimento = dataNascimento;
-        this.telefone = telefone;
-        this.tipoDeficiencia = tipoDeficiencia;
-        this.necessidadesEspecificas = necessidadesEspecificas;
-        this.endereco = endereco;
-        this.cidade = cidade;
-        this.estado = estado;
-        this.cep = cep;
-    }
+            Long id, String email, String password, boolean enabled,
+            LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> roles,
+            String nome, String sobrenome, LocalDate dataNascimento, String telefone,
+            String tipoDeficiencia, String necessidadesEspecificas, String endereco,
+            String cidade, String estado, String cep) {
+            super(id, email, password, enabled, createdAt, updatedAt, roles);
+            this.nome = nome;
+            this.sobrenome = sobrenome;
+            this.dataNascimento = dataNascimento;
+            this.telefone = telefone;
+            this.tipoDeficiencia = tipoDeficiencia;
+            this.necessidadesEspecificas = necessidadesEspecificas;
+            this.endereco = endereco;
+            this.cidade = cidade;
+            this.estado = estado;
+            this.cep = cep;
+     }
 }

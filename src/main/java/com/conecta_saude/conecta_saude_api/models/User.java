@@ -1,7 +1,7 @@
 package com.conecta_saude.conecta_saude_api.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor; 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -9,10 +9,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users") 
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE) 
+@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING) 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor 
+@AllArgsConstructor
 public class User {
 
     @Id
