@@ -1,10 +1,13 @@
 package com.conecta_saude.conecta_saude_api.models;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime; 
-import java.util.Set; 
-import java.util.Objects; 
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Set;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity; 
 
 
 @Entity

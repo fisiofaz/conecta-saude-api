@@ -1,9 +1,12 @@
 package com.conecta_saude.conecta_saude_api.models;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
-import java.util.Objects; 
+
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity; 
 
 @Entity
 @DiscriminatorValue("PROFISSIONAL")
@@ -23,7 +26,10 @@ public class ProfissionalDeSaude extends User {
 
     @Column(name = "telefone")
     private String telefone;
-
+    
+    @Column(columnDefinition = "TEXT") 
+    private String descricao;
+    
     @Column(name = "endereco_consultorio")
     private String enderecoConsultorio;
 
