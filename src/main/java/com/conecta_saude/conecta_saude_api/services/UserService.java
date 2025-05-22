@@ -36,4 +36,12 @@ public class UserService {
     public boolean existsUserByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+    
+    public void updatePassword(Long id, String newPassword) {
+           		Optional<User> userOptional = userRepository.findById(id);
+           		userOptional.ifPresent(user -> {
+           			user.setPassword(newPassword); 
+           			userRepository.save(user);
+           });
+     }
 }

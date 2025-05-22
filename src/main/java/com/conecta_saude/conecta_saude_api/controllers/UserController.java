@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -16,11 +15,17 @@ public class UserController {
 
     @Autowired 
     private UserService userService;
+    
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User newUser = userService.saveUser(user);
+        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    }
 
     @GetMapping 
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAllUsers();
-        return ResponseEntity.ok(users); 
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @GetMapping("/{id}") 
@@ -30,15 +35,7 @@ public class UserController {
                    .orElseGet(() -> ResponseEntity.notFound().build()); 
     }
 
-    @PostMapping 
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        if (userService.existsUserByEmail(user.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); 
-        }
-        User savedUser = userService.saveUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser); 
-    }
-
+    
     @PutMapping("/{id}") 
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         Optional<User> userOptional = userService.findUserById(id);
