@@ -12,11 +12,17 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("PROFISSIONAL")
 public class ProfissionalDeSaude extends User {
 
+	
+	private static final long serialVersionUID = 1691934482956311466L;
+
 	@Column(name = "nome")
 	private String nome;
 
 	@Column(name = "sobrenome")
     private String sobrenome;
+	
+	 @Column(name = "telefone")
+	 private String telefone;
 
     @Column(nullable = false)
     private String especialidade;
@@ -24,15 +30,9 @@ public class ProfissionalDeSaude extends User {
     @Column(name = "crm_crp_outros", unique = true)
     private String crmCrpOutros;
 
-    @Column(name = "telefone")
-    private String telefone;
-    
-    @Column(columnDefinition = "TEXT") 
-    private String descricao;
-    
     @Column(name = "endereco_consultorio")
     private String enderecoConsultorio;
-
+    
     @Column(name = "cidade_consultorio")
     private String cidadeConsultorio;
 
@@ -41,21 +41,25 @@ public class ProfissionalDeSaude extends User {
 
     @Column(name = "cep_consultorio")
     private String cepConsultorio;
-
-    @Column(name = "sobre_mim", columnDefinition = "TEXT")
-    private String sobreMim;
-
-    @Column(name = "foto_perfil_url")
-    private String fotoPerfilUrl;
-
+    
     @Column(name = "acessibilidade_consultorio", columnDefinition = "TEXT")
     private String acessibilidadeConsultorio;
-
+    
     @Column(name = "idiomas_comunicacao")
     private String idiomasComunicacao;
 
     @Column(name = "servicos_oferecidos", columnDefinition = "TEXT")
     private String servicosOferecidos;
+    
+
+    @Column(name = "sobre_mim", columnDefinition = "TEXT")
+    private String sobreMim;
+    
+    @Column(name = "foto_perfil_url")
+    private String fotoPerfilUrl;
+    
+    @Column(columnDefinition = "TEXT") 
+    private String descricao;
 
     public ProfissionalDeSaude() {
         super(); 

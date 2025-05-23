@@ -1,9 +1,15 @@
 package com.conecta_saude.conecta_saude_api.models;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
@@ -23,16 +29,17 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table; 
 
 @Entity
-@Table(name = "users")
+@Table(name = "tb_users") 
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("User")
 
-public class User {
+public abstract class User implements UserDetails { 
+   	
+	private static final long serialVersionUID = -9217972447346629352L;
 
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-	protected Long id;
+    protected Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -57,7 +64,6 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    
     public User() {
     }
 
@@ -79,8 +85,8 @@ public class User {
     public void setId(Long id) {
         this.id = id;
     }
-    
-    public String getEmail() { // <-- ESTE É O MÉTODO QUE ESTÁ FALTANDO E CAUSANDO O ERRO
+
+    public String getEmail() {
         return email;
     }
 
@@ -88,7 +94,7 @@ public class User {
         this.email = email;
     }
 
-    public String getPassword() {
+    public String getPassword() { 
         return password;
     }
 
@@ -138,7 +144,7 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -146,7 +152,7 @@ public class User {
         User user = (User) o;
         return Objects.equals(id, user.id);
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -161,4 +167,30 @@ public class User {
                '}';
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {        
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName())) 
+                .toList(); 
+    }
+
+    @Override
+    public String getUsername() {        
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {        
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {       
+        return true;
+    }
 }

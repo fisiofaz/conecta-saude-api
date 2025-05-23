@@ -12,6 +12,10 @@ public class ProfissionalDeSaudeService {
 
     @Autowired
     private ProfissionalDeSaudeRepository profissionalDeSaudeRepository;
+    
+    public ProfissionalDeSaude save(ProfissionalDeSaude profissionalDeSaude) {
+        return profissionalDeSaudeRepository.save(profissionalDeSaude);
+    }
 
     public List<ProfissionalDeSaude> findAllProfissionaisDeSaude() {
         return profissionalDeSaudeRepository.findAll();
@@ -19,10 +23,6 @@ public class ProfissionalDeSaudeService {
 
     public Optional<ProfissionalDeSaude> findProfissionalDeSaudeById(Long id) {
         return profissionalDeSaudeRepository.findById(id);
-    }
-
-    public ProfissionalDeSaude saveProfissionalDeSaude(ProfissionalDeSaude profissionalDeSaude) {
-        return profissionalDeSaudeRepository.save(profissionalDeSaude);
     }
 
     public void deleteProfissionalDeSaude(Long id) {
@@ -36,4 +36,9 @@ public class ProfissionalDeSaudeService {
     public List<ProfissionalDeSaude> findProfissionaisByCidadeAndAcessibilidade(String cidade, String acessibilidade) {
         return profissionalDeSaudeRepository.findByCidadeConsultorioAndAcessibilidadeConsultorioContainingIgnoreCase(cidade, acessibilidade);
     }
+
+	public Optional<ProfissionalDeSaude> findById(Long id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

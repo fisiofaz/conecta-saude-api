@@ -5,29 +5,36 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
+import com.conecta_saude.conecta_saude_api.models.enums.TipoDeficiencia;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity; 
-
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 @Entity
 @DiscriminatorValue("PCD")
 public class UsuarioPCD extends User {
+
+	
+	private static final long serialVersionUID = -5621351993289785347L;
 
 	@Column(name = "nome")
 	private String nome;
 	
 	@Column(name = "sobrenome")
     private String sobrenome;
-
-    @Column(name = "data_nascimento")
-    private LocalDate dataNascimento;
-    
-    @Column(name = "telefone")
+	
+	@Column(name = "telefone")
     private String telefone;
-
+   
+	@Column(name = "data_nascimento")
+    private LocalDate dataNascimento;
+	
+	@Enumerated(EnumType.STRING) 
     @Column(name = "tipo_deficiencia")
-    private String tipoDeficiencia;
+    private TipoDeficiencia tipoDeficiencia;
 
     @Column(name = "necessidades_especificas", columnDefinition = "TEXT")
     private String necessidadesEspecificas;
@@ -52,7 +59,7 @@ public class UsuarioPCD extends User {
             Long id, String email, String password, boolean enabled,
             LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> roles,
             String nome, String sobrenome, LocalDate dataNascimento, String telefone,
-            String tipoDeficiencia, String necessidadesEspecificas, String endereco,
+            TipoDeficiencia tipoDeficiencia, String necessidadesEspecificas, String endereco,
             String cidade, String estado, String cep) {
             super(id, email, password, enabled, createdAt, updatedAt, roles);
             this.nome = nome;
@@ -99,11 +106,11 @@ public class UsuarioPCD extends User {
         this.telefone = telefone;
     }
 
-    public String getTipoDeficiencia() {
+    public TipoDeficiencia getTipoDeficiencia() {
         return tipoDeficiencia;
     }
 
-    public void setTipoDeficiencia(String tipoDeficiencia) {
+    public void setTipoDeficiencia(TipoDeficiencia tipoDeficiencia) {
         this.tipoDeficiencia = tipoDeficiencia;
     }
 

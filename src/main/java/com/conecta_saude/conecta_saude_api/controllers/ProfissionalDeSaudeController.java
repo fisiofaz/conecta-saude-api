@@ -1,14 +1,23 @@
 package com.conecta_saude.conecta_saude_api.controllers;
 
-import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
-import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Optional;
+import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
+import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
 
 @RestController
 @RequestMapping("/api/profissionais")
@@ -16,61 +25,61 @@ public class ProfissionalDeSaudeController {
 
     @Autowired
     private ProfissionalDeSaudeService profissionalDeSaudeService;
-
+    
+    public ProfissionalDeSaudeController(ProfissionalDeSaudeService profissionalDeSaudeService) {
+        this.profissionalDeSaudeService = profissionalDeSaudeService;
+    }
+    
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProfissionalDeSaude> createProfissionalDeSaude(@RequestBody ProfissionalDeSaude profissionalDeSaude) {
+        ProfissionalDeSaude savedProfissional = profissionalDeSaudeService.save(profissionalDeSaude);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedProfissional);
+    }
+    
     @GetMapping
-    public ResponseEntity<List<ProfissionalDeSaude>> getAllProfissionaisDeSaude() {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProfissionalDeSaude>> getAllProfissional() {
         List<ProfissionalDeSaude> profissionais = profissionalDeSaudeService.findAllProfissionaisDeSaude();
         return ResponseEntity.ok(profissionais);
     }
 
+       
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ProfissionalDeSaude> getProfissionalDeSaudeById(@PathVariable Long id) {
-        Optional<ProfissionalDeSaude> profissional = profissionalDeSaudeService.findProfissionalDeSaudeById(id);
-        return profissional.map(ResponseEntity::ok)
-                           .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<ProfissionalDeSaude> createProfissionalDeSaude(@RequestBody ProfissionalDeSaude profissional) {
-        ProfissionalDeSaude savedProfissional = profissionalDeSaudeService.saveProfissionalDeSaude(profissional);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedProfissional);
-    }
+    	return profissionalDeSaudeService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }   
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProfissionalDeSaude> updateProfissionalDeSaude(@PathVariable Long id, @RequestBody ProfissionalDeSaude profissionalDetails) {
-        Optional<ProfissionalDeSaude> profissionalOptional = profissionalDeSaudeService.findProfissionalDeSaudeById(id);
-
-        if (profissionalOptional.isPresent()) {
-            ProfissionalDeSaude existingProfissional = profissionalOptional.get();
-            // Atualiza campos específicos do ProfissionalDeSaude
-            existingProfissional.setNome(profissionalDetails.getNome());
-            existingProfissional.setSobrenome(profissionalDetails.getSobrenome());
-            existingProfissional.setEspecialidade(profissionalDetails.getEspecialidade());
-            existingProfissional.setCrmCrpOutros(profissionalDetails.getCrmCrpOutros());
-            existingProfissional.setTelefone(profissionalDetails.getTelefone());
-            existingProfissional.setEnderecoConsultorio(profissionalDetails.getEnderecoConsultorio());
-            existingProfissional.setCidadeConsultorio(profissionalDetails.getCidadeConsultorio());
-            existingProfissional.setEstadoConsultorio(profissionalDetails.getEstadoConsultorio());
-            existingProfissional.setCepConsultorio(profissionalDetails.getCepConsultorio());
-            existingProfissional.setSobreMim(profissionalDetails.getSobreMim());
-            existingProfissional.setFotoPerfilUrl(profissionalDetails.getFotoPerfilUrl());
-            existingProfissional.setAcessibilidadeConsultorio(profissionalDetails.getAcessibilidadeConsultorio());
-            existingProfissional.setIdiomasComunicacao(profissionalDetails.getIdiomasComunicacao());
-            existingProfissional.setServicosOferecidos(profissionalDetails.getServicosOferecidos());
-
-           
-            existingProfissional.setEmail(profissionalDetails.getEmail());
-            existingProfissional.setEnabled(profissionalDetails.isEnabled());
-            existingProfissional.setRoles(profissionalDetails.getRoles());
-
-            ProfissionalDeSaude updatedProfissional = profissionalDeSaudeService.saveProfissionalDeSaude(existingProfissional);
-            return ResponseEntity.ok(updatedProfissional);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasRole('ADMIN')") 
+    public ResponseEntity<ProfissionalDeSaude> updateProfissionalDeSaude(@PathVariable Long id, @RequestBody ProfissionalDeSaude profissionalDeSaude) {
+    	return profissionalDeSaudeService.findById(id)
+                .map(existingProfissional -> {
+                    
+                    existingProfissional.setNome(profissionalDeSaude.getNome());
+                    existingProfissional.setSobrenome(profissionalDeSaude.getSobrenome());
+                    existingProfissional.setTelefone(profissionalDeSaude.getTelefone());
+                    existingProfissional.setEspecialidade(profissionalDeSaude.getEspecialidade());
+                    existingProfissional.setCrmCrpOutros(profissionalDeSaude.getCrmCrpOutros());
+                    existingProfissional.setEnderecoConsultorio(profissionalDeSaude.getEnderecoConsultorio());
+                    existingProfissional.setCepConsultorio(profissionalDeSaude.getCepConsultorio());
+                    existingProfissional.setCidadeConsultorio(profissionalDeSaude.getCidadeConsultorio());
+                    existingProfissional.setEstadoConsultorio(profissionalDeSaude.getEstadoConsultorio());
+                    existingProfissional.setAcessibilidadeConsultorio(profissionalDeSaude.getAcessibilidadeConsultorio());
+                    existingProfissional.setIdiomasComunicacao(profissionalDeSaude.getIdiomasComunicacao());
+                    existingProfissional.setServicosOferecidos(profissionalDeSaude.getServicosOferecidos());
+                    existingProfissional.setSobreMim(profissionalDeSaude.getSobreMim());
+                    existingProfissional.setFotoPerfilUrl(profissionalDeSaude.getFotoPerfilUrl());
+                    return new ResponseEntity<>(profissionalDeSaudeService.save(existingProfissional), HttpStatus.OK);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProfissionalDeSaude(@PathVariable Long id) {
         if (profissionalDeSaudeService.findProfissionalDeSaudeById(id).isPresent()) {
             profissionalDeSaudeService.deleteProfissionalDeSaude(id);

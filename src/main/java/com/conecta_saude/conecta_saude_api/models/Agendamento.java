@@ -1,10 +1,25 @@
 package com.conecta_saude.conecta_saude_api.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
+
+import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
 
 @Entity
 @Table(name = "agendamentos", uniqueConstraints = {
@@ -18,12 +33,12 @@ public class Agendamento {
     private Long id;
 
     
-    @ManyToOne(fetch = FetchType.LAZY) 
+    @ManyToOne
     @JoinColumn(name = "usuario_pcd_id", nullable = false) 
     private UsuarioPCD usuarioPCD;
 
    
-    @ManyToOne(fetch = FetchType.LAZY) 
+    @ManyToOne
     @JoinColumn(name = "profissional_saude_id", nullable = false) 
     private ProfissionalDeSaude profissionalSaude;
 
@@ -33,8 +48,9 @@ public class Agendamento {
     @Column(name = "hora_agendamento", nullable = false)
     private LocalTime horaAgendamento;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "PENDENTE"; 
+    private StatusAgendamento status; 
 
     @Column(name = "observacoes_usuario", columnDefinition = "TEXT")
     private String observacoesUsuario; 
@@ -52,7 +68,7 @@ public class Agendamento {
     }
     
     public Agendamento(Long id, UsuarioPCD usuarioPCD, ProfissionalDeSaude profissionalSaude,
-            LocalDate dataAgendamento, LocalTime horaAgendamento, String status,
+            LocalDate dataAgendamento, LocalTime horaAgendamento, StatusAgendamento status,
             String observacoesUsuario, String observacoesProfissional,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
 		this.id = id;
@@ -107,12 +123,12 @@ public class Agendamento {
         this.horaAgendamento = horaAgendamento;
     }
 
-    public String getStatus() {
+    public StatusAgendamento getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setStatus(StatusAgendamento string) {
+        this.status = string;
     }
 
     public String getObservacoesUsuario() {
@@ -182,4 +198,9 @@ public class Agendamento {
                ", status='" + status + '\'' +
                '}';
     }
+
+	public void setStatus(String string) {
+		// TODO Auto-generated method stub
+		
+	}
 }
