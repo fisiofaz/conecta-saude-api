@@ -5,6 +5,8 @@ import com.conecta_saude.conecta_saude_api.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
@@ -28,11 +30,25 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}") 
+    @GetMapping("/api/users/{id}") 
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         Optional<User> user = userService.findUserById(id);
         return user.map(ResponseEntity::ok) 
                    .orElseGet(() -> ResponseEntity.notFound().build()); 
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<?> getAuthenticatedUser() {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	Object principal = authentication.getPrincipal();
+    	
+    	if (principal instanceof User) {
+    		User currentUser = (User) principal;
+    		return ResponseEntity.ok(currentUser.getEmail());
+    	} else {
+            return ResponseEntity.status(404).body("User not found or not authenticated properly.");
+        }
+    	
     }
 
     

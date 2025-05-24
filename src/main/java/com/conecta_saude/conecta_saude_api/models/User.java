@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -170,7 +169,7 @@ public abstract class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {        
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName())) 
+        		.map(role -> new SimpleGrantedAuthority(role.getName()))  
                 .toList(); 
     }
 

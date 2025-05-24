@@ -5,10 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationRequest; 
+import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationResponse;
 import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
 import com.conecta_saude.conecta_saude_api.models.Role;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
@@ -24,7 +28,9 @@ import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepos
 import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
 import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
 import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository;
-import com.conecta_saude.conecta_saude_api.security.jwt.JwtService; 
+import com.conecta_saude.conecta_saude_api.security.jwt.JwtService;
+
+import jakarta.validation.Valid; 
 
 @RestController
 @RequestMapping("/api/auth")
@@ -52,25 +58,28 @@ public class AuthController {
     	this.profissionalDeSaudeRepository = profissionalDeSaudeRepository; 
 }
 
-    public static class LoginRequest {
-        public String email;
-        public String password;
-    }
-
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.email, request.password)
-        );
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody @Valid AuthenticationRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    request.getEmail(), 
+                    request.getPassword() 
+                )
+            );
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String jwtToken = jwtService.generateToken(userDetails);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String jwtToken = jwtService.generateToken(userDetails);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("jwtToken", jwtToken);
-        response.put("message", "Autenticação bem-sucedida!");
+            return ResponseEntity.ok(new AuthenticationResponse(jwtToken, "Autenticação bem-sucedida!"));
 
-        return ResponseEntity.ok(response);
+        } catch (AuthenticationException e) {
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthenticationResponse(null, "Credenciais inválidas."));
+        } catch (Exception e) {
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthenticationResponse(null, "Erro interno do servidor durante a autenticação."));
+        }
     }
 
     @PostMapping("/register/pcd") 

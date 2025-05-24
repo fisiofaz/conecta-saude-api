@@ -9,9 +9,9 @@ import jakarta.persistence.DiscriminatorValue;
 @Entity
 @DiscriminatorValue("Medico") 
 public class Medico extends User { 
-
-    
-    @Column(name = "especialidade", nullable = true) 
+	
+	private static final long serialVersionUID = -4259094873189869258L;
+	@Column(name = "especialidade", nullable = true) 
     private String especialidade;
 
    
