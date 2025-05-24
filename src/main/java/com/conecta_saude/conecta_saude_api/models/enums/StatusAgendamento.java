@@ -1,13 +1,9 @@
-package com.conecta_saude.conecta_saude_api.models.enums; 
+package com.conecta_saude.conecta_saude_api.models.enums;
 
 public enum StatusAgendamento {
     PENDENTE,
     CONFIRMADO,
-    CANCELADO,
-    CONCLUIDO;
-
-	public boolean isEmpty() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    CANCELADO_POR_USUARIO,
+    CANCELADO_POR_PROFISSIONAL,
+    CONCLUIDO
 }

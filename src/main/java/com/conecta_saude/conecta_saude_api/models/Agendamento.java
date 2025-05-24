@@ -83,6 +83,17 @@ public class Agendamento {
 		this.updatedAt = updatedAt;
 	}
     
+    public Agendamento(UsuarioPCD usuarioPCD, ProfissionalDeSaude profissionalSaude,
+            			LocalDate dataAgendamento, LocalTime horaAgendamento,
+            			String observacoesUsuario) {
+    	this.usuarioPCD = usuarioPCD;
+    	this.profissionalSaude = profissionalSaude;
+    	this.dataAgendamento = dataAgendamento;
+    	this.horaAgendamento = horaAgendamento;
+    	this.observacoesUsuario = observacoesUsuario;
+    	this.status = StatusAgendamento.PENDENTE; 
+    }
+    
     public Long getId() {
         return id;
     }
@@ -198,9 +209,4 @@ public class Agendamento {
                ", status='" + status + '\'' +
                '}';
     }
-
-	public void setStatus(String string) {
-		// TODO Auto-generated method stub
-		
-	}
 }

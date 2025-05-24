@@ -2,7 +2,6 @@ package com.conecta_saude.conecta_saude_api.services;
 
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -10,8 +9,12 @@ import java.util.Optional;
 @Service
 public class UsuarioPCDService {
 
-    @Autowired
+
     private UsuarioPCDRepository usuarioPCDRepository;
+    
+    public UsuarioPCDService(UsuarioPCDRepository usuarioPCDRepository) {
+        this.usuarioPCDRepository = usuarioPCDRepository;
+    }
 
     public List<UsuarioPCD> findAllUsuariosPCD() {
         return usuarioPCDRepository.findAll();
