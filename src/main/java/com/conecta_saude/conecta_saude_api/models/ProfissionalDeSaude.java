@@ -230,4 +230,6 @@ public class ProfissionalDeSaude extends User {
                ", crmCrpOutros='" + crmCrpOutros + '\'' +
                '}';
     }
+
+	
 }

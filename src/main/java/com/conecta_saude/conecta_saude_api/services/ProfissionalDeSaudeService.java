@@ -16,6 +16,10 @@ public class ProfissionalDeSaudeService {
     public ProfissionalDeSaude save(ProfissionalDeSaude profissionalDeSaude) {
         return profissionalDeSaudeRepository.save(profissionalDeSaude);
     }
+    
+    public Optional<ProfissionalDeSaude> findByEmail(String email) {
+        return profissionalDeSaudeRepository.findByEmail(email);
+    }
 
     public List<ProfissionalDeSaude> findAllProfissionaisDeSaude() {
         return profissionalDeSaudeRepository.findAll();

@@ -8,6 +8,9 @@ import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
 import com.conecta_saude.conecta_saude_api.services.AgendamentoService;
+import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
+import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
+
 import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository; 
 import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository; 
 
@@ -28,15 +31,15 @@ import java.util.stream.Collectors;
 public class AgendamentoController {
 
     private final AgendamentoService agendamentoService;
-    private final UsuarioPCDRepository usuarioPCDRepository; 
-    private final ProfissionalDeSaudeRepository profissionalDeSaudeRepository; 
+    private final UsuarioPCDService usuarioPCDService;
+    private final ProfissionalDeSaudeService profissionalDeSaudeService; 
 
     public AgendamentoController(AgendamentoService agendamentoService,
-                                 UsuarioPCDRepository usuarioPCDRepository,
-                                 ProfissionalDeSaudeRepository profissionalDeSaudeRepository) {
+    							UsuarioPCDService usuarioPCDService,
+                                 ProfissionalDeSaudeService profissionalDeSaudeService) {
         this.agendamentoService = agendamentoService;
-        this.usuarioPCDRepository = usuarioPCDRepository;
-        this.profissionalDeSaudeRepository = profissionalDeSaudeRepository;
+        this.usuarioPCDService = usuarioPCDService;
+        this.profissionalDeSaudeService = profissionalDeSaudeService;
     }
 
     
@@ -73,16 +76,12 @@ public class AgendamentoController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName();
         
-        UsuarioPCD usuarioPCDLogado = usuarioPCDRepository.findByEmail(currentUserEmail)
+        UsuarioPCD usuarioPCDLogado = usuarioPCDService.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário PCD logado não encontrado."));
-
-        if (!usuarioPCDLogado.getId().equals(requestDTO.getUsuarioPcdId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode criar agendamentos para seu próprio perfil.");
-        }
 
         try {            
             Agendamento novoAgendamento = agendamentoService.createAgendamento(
-                requestDTO.getUsuarioPcdId(),
+            	usuarioPCDLogado,
                 requestDTO.getProfissionalSaudeId(),
                 requestDTO.getDataAgendamento(),
                 requestDTO.getHoraAgendamento(),
@@ -113,11 +112,11 @@ public class AgendamentoController {
         if (isAdmin) {
             agendamentos = agendamentoService.findAllAgendamentos();
         } else if (isUsuarioPCD) {
-            UsuarioPCD usuarioPCD = usuarioPCDRepository.findByEmail(currentUserEmail)
+            UsuarioPCD usuarioPCD = usuarioPCDService.findByEmail(currentUserEmail)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário PCD logado não encontrado."));
             agendamentos = agendamentoService.findAgendamentosByUsuarioPCDId(usuarioPCD.getId());
         } else if (isProfissional) {
-            ProfissionalDeSaude profissional = profissionalDeSaudeRepository.findByEmail(currentUserEmail)
+        	ProfissionalDeSaude profissional = profissionalDeSaudeService.findByEmail(currentUserEmail)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profissional de Saúde logado não encontrado."));
             agendamentos = agendamentoService.findAgendamentosByProfissionalSaudeId(profissional.getId());
         } else {
@@ -156,9 +155,8 @@ public class AgendamentoController {
         }
     }
 
- 
-    @PatchMapping("/{id}/status") 
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFISSIONAL', 'USUARIO_PCD')")
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_PROFISSIONAL', 'ROLE_USUARIO_PCD')") // Correção das roles
     public ResponseEntity<AgendamentoResponseDTO> updateAgendamentoStatus(
         @PathVariable Long id,
         @Valid @RequestBody AgendamentoUpdateStatusDTO updateStatusDTO) {
@@ -172,30 +170,25 @@ public class AgendamentoController {
         Agendamento agendamento = agendamentoService.findAgendamentoById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado."));
 
-       
         if (isAdmin) {
-            
             agendamentoService.updateAgendamentoStatus(id, updateStatusDTO.getNewStatus(), updateStatusDTO.getObservacoesProfissional())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao atualizar agendamento."));
         } else if (isProfissional) {
-            
             if (!agendamento.getProfissionalSaude().getEmail().equals(currentUserEmail)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para alterar o status deste agendamento.");
             }
-            
             if (updateStatusDTO.getNewStatus() == StatusAgendamento.CANCELADO_POR_USUARIO) {
                  throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profissionais não podem definir status de CANCELADO_POR_USUARIO.");
             }
-             agendamentoService.updateAgendamentoStatus(id, updateStatusDTO.getNewStatus(), updateStatusDTO.getObservacoesProfissional())
+            agendamentoService.updateAgendamentoStatus(id, updateStatusDTO.getNewStatus(), updateStatusDTO.getObservacoesProfissional())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao atualizar agendamento."));
 
         } else if (isUsuarioPCD) {
-
             if (!agendamento.getUsuarioPCD().getEmail().equals(currentUserEmail)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para alterar o status deste agendamento.");
             }
             if (updateStatusDTO.getNewStatus() == StatusAgendamento.CANCELADO_POR_USUARIO &&
-                agendamento.getStatus() == StatusAgendamento.PENDENTE) { 
+                agendamento.getStatus() == StatusAgendamento.PENDENTE) {
                 agendamentoService.updateAgendamentoStatus(id, StatusAgendamento.CANCELADO_POR_USUARIO, updateStatusDTO.getObservacoesProfissional())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao cancelar agendamento."));
             } else {
@@ -205,14 +198,11 @@ public class AgendamentoController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para realizar esta operação.");
         }
 
-        
         return agendamentoService.findAgendamentoById(id)
             .map(this::convertToDto)
             .map(ResponseEntity::ok)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado após atualização."));
     }
-
-
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')") 

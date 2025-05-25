@@ -13,31 +13,32 @@ import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
 import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
-import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository;
-import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository;    
+
 
 @Service
 public class AgendamentoService {
 
     private final AgendamentoRepository agendamentoRepository;
-    private final UsuarioPCDRepository usuarioPCDRepository; 
-    private final ProfissionalDeSaudeRepository profissionalDeSaudeRepository;
+    private final UsuarioPCDService usuarioPCDService;           
+    private final ProfissionalDeSaudeService profissionalDeSaudeService;
 
   
     public AgendamentoService(AgendamentoRepository agendamentoRepository,
-                              UsuarioPCDRepository usuarioPCDRepository,
-                              ProfissionalDeSaudeRepository profissionalDeSaudeRepository) {
-        this.agendamentoRepository = agendamentoRepository;
-        this.usuarioPCDRepository = usuarioPCDRepository;
-        this.profissionalDeSaudeRepository = profissionalDeSaudeRepository;
+    							UsuarioPCDService usuarioPCDService,
+    							ProfissionalDeSaudeService profissionalDeSaudeService) {
+    	this.agendamentoRepository = agendamentoRepository;
+        this.usuarioPCDService = usuarioPCDService;
+        this.profissionalDeSaudeService = profissionalDeSaudeService;
     }
     
     @Transactional
-    public Agendamento createAgendamento(Long usuarioPcdId, Long profissionalId, LocalDate data, LocalTime hora, String observacoesUsuario) {
-       
-        UsuarioPCD usuarioPCD = usuarioPCDRepository.findById(usuarioPcdId)
-                .orElseThrow(() -> new RuntimeException("Usuário PCD não encontrado."));
-        ProfissionalDeSaude profissionalDeSaude = profissionalDeSaudeRepository.findById(profissionalId)
+    public Agendamento createAgendamento(UsuarioPCD usuarioPCD, 
+                                         Long profissionalId,
+                                         LocalDate data,
+                                         LocalTime hora,
+                                         String observacoesUsuario) {
+        
+        ProfissionalDeSaude profissionalDeSaude = profissionalDeSaudeService.findProfissionalDeSaudeById(profissionalId)
                 .orElseThrow(() -> new RuntimeException("Profissional de Saúde não encontrado."));
 
         Optional<Agendamento> agendamentoExistente = agendamentoRepository
@@ -49,12 +50,12 @@ public class AgendamentoService {
             throw new IllegalArgumentException("Horário já agendado ou pendente para este profissional.");
         }
 
-        
         Agendamento novoAgendamento = new Agendamento(usuarioPCD, profissionalDeSaude, data, hora, observacoesUsuario);
+        
         if (novoAgendamento.getStatus() == null) {
             novoAgendamento.setStatus(StatusAgendamento.PENDENTE);
         }
-        
+
         return agendamentoRepository.save(novoAgendamento);
     }
 
@@ -66,7 +67,7 @@ public class AgendamentoService {
         return agendamentoRepository.findById(id);
     }
 
-    @Transactional 
+    @Transactional
     public Agendamento saveAgendamento(Agendamento agendamento) {
         
         Optional<Agendamento> agendamentoExistente = agendamentoRepository.findByProfissionalSaudeAndDataAgendamentoAndHoraAgendamento(
@@ -74,11 +75,11 @@ public class AgendamentoService {
 
         if (agendamentoExistente.isPresent() &&
             (agendamentoExistente.get().getStatus() == StatusAgendamento.CONFIRMADO ||
-             agendamentoExistente.get().getStatus() == StatusAgendamento.PENDENTE)) {
+             agendamentoExistente.get().getStatus() == StatusAgendamento.PENDENTE) &&
+            !agendamentoExistente.get().getId().equals(agendamento.getId())) { 
             throw new IllegalArgumentException("Horário já agendado ou pendente para este profissional.");
         }
 
-        
         if (agendamento.getStatus() == null) {
             agendamento.setStatus(StatusAgendamento.PENDENTE);
         }
@@ -97,15 +98,15 @@ public class AgendamentoService {
 
     
     public List<Agendamento> findAgendamentosByUsuarioPCDId(Long usuarioPcdId) {
-        UsuarioPCD usuarioPCD = usuarioPCDRepository.findById(usuarioPcdId)
-                .orElseThrow(() -> new RuntimeException("Usuário PCD não encontrado.")); 
-        return agendamentoRepository.findByUsuarioPCD(usuarioPCD);
+    	 UsuarioPCD usuarioPCD = usuarioPCDService.findUsuarioPCDById(usuarioPcdId) // <<--- USANDO O SERVICE
+                 .orElseThrow(() -> new RuntimeException("Usuário PCD não encontrado."));
+         return agendamentoRepository.findByUsuarioPCD(usuarioPCD);
     }
 
     
     public List<Agendamento> findAgendamentosByProfissionalSaudeId(Long profissionalId) {
-        ProfissionalDeSaude profissionalDeSaude = profissionalDeSaudeRepository.findById(profissionalId)
-                .orElseThrow(() -> new RuntimeException("Profissional de Saúde não encontrado.")); 
+    	ProfissionalDeSaude profissionalDeSaude = profissionalDeSaudeService.findProfissionalDeSaudeById(profissionalId) // <<--- USANDO O SERVICE
+                .orElseThrow(() -> new RuntimeException("Profissional de Saúde não encontrado."));
         return agendamentoRepository.findByProfissionalSaude(profissionalDeSaude);
     }
 
@@ -128,7 +129,5 @@ public class AgendamentoService {
             return Optional.of(agendamentoRepository.save(agendamento));
         }
         return Optional.empty();
-    }
-
-	
+    }	
 }

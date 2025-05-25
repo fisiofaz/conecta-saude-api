@@ -2,6 +2,7 @@ package com.conecta_saude.conecta_saude_api.controllers;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDResponseDTO;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
 
@@ -26,88 +28,77 @@ public class UsuarioPCDController {
 
     private final UsuarioPCDService usuarioPCDService;
 
-   
     public UsuarioPCDController(UsuarioPCDService usuarioPCDService) {
         this.usuarioPCDService = usuarioPCDService;
     }
 
-   
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ROLE_USUARIO_PCD')")
+    public ResponseEntity<UsuarioPCDResponseDTO> getMyProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        Optional<UsuarioPCD> usuarioPCD = usuarioPCDService.findByEmail(userEmail);
+        if (usuarioPCD.isPresent()) {
+            return ResponseEntity.ok(new UsuarioPCDResponseDTO(usuarioPCD.get()));
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
+
+    @PutMapping("/me")
+    @PreAuthorize("hasRole('ROLE_USUARIO_PCD')")
+    public ResponseEntity<UsuarioPCDResponseDTO> updateMyProfile(@RequestBody UsuarioPCDResponseDTO usuarioPCDRequestDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        UsuarioPCD updatedUsuario = usuarioPCDService.updateUsuarioPCD(userEmail, usuarioPCDRequestDTO);
+        return ResponseEntity.ok(new UsuarioPCDResponseDTO(updatedUsuario));
+    }
+
+
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UsuarioPCD>> getAllUsuariosPCD() {
+    @PreAuthorize("hasRole('ROLE_ADMIN')") 
+    public ResponseEntity<List<UsuarioPCDResponseDTO>> getAllUsuariosPCD() {
         List<UsuarioPCD> usuarios = usuarioPCDService.findAllUsuariosPCD();
-        return ResponseEntity.ok(usuarios);
+        List<UsuarioPCDResponseDTO> dtos = usuarios.stream()
+                                                    .map(UsuarioPCDResponseDTO::new)
+                                                    .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     
-    @GetMapping("/{id}") 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')") 
-    public ResponseEntity<UsuarioPCD> getUsuarioPCDById(@PathVariable Long id) { 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName(); 
-
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')") 
+    public ResponseEntity<UsuarioPCDResponseDTO> getUsuarioPCDById(@PathVariable Long id) {
         Optional<UsuarioPCD> usuarioOptional = usuarioPCDService.findUsuarioPCDById(id);
 
         if (usuarioOptional.isPresent()) {
-            UsuarioPCD usuario = usuarioOptional.get();
-
-            
-            boolean isAdmin = authentication.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (isAdmin || usuario.getEmail().equals(currentUserEmail)) {
-                return ResponseEntity.ok(usuario);
-            } else {
-               
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); 
-            }
+            return ResponseEntity.ok(new UsuarioPCDResponseDTO(usuarioOptional.get()));
         } else {
-            return ResponseEntity.notFound().build(); 
+            return ResponseEntity.notFound().build();
         }
     }
 
     
-    @PostMapping 
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UsuarioPCD> createUsuarioPCD(@RequestBody UsuarioPCD usuarioPCD) { 
-        UsuarioPCD savedUsuario = usuarioPCDService.saveUsuarioPCD(usuarioPCD);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUsuario);
+    @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<UsuarioPCDResponseDTO> createUsuarioPCD(@RequestBody UsuarioPCDResponseDTO usuarioPCDRequestDTO) {        
+        UsuarioPCD savedUsuario = usuarioPCDService.createUsuarioPCD(usuarioPCDRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new UsuarioPCDResponseDTO(savedUsuario));
     }
 
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<UsuarioPCD> updateUsuarioPCD(@PathVariable Long id, @RequestBody UsuarioPCD usuarioPCDDetails) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName(); 
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')") 
+    public ResponseEntity<UsuarioPCDResponseDTO> updateUsuarioPCD(@PathVariable Long id, @RequestBody UsuarioPCDResponseDTO usuarioPCDRequestDTO) {
         Optional<UsuarioPCD> usuarioOptional = usuarioPCDService.findUsuarioPCDById(id);
 
         if (usuarioOptional.isPresent()) {
-            UsuarioPCD existingUsuario = usuarioOptional.get();
-
-            boolean isAdmin = authentication.getAuthorities().stream()
-                                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            
-            if (isAdmin || existingUsuario.getEmail().equals(currentUserEmail)) {
-                existingUsuario.setNome(usuarioPCDDetails.getNome());
-                existingUsuario.setSobrenome(usuarioPCDDetails.getSobrenome());
-                existingUsuario.setDataNascimento(usuarioPCDDetails.getDataNascimento());
-                existingUsuario.setTelefone(usuarioPCDDetails.getTelefone());
-                existingUsuario.setTipoDeficiencia(usuarioPCDDetails.getTipoDeficiencia());
-                existingUsuario.setNecessidadesEspecificas(usuarioPCDDetails.getNecessidadesEspecificas());
-                existingUsuario.setEndereco(usuarioPCDDetails.getEndereco());
-                existingUsuario.setCidade(usuarioPCDDetails.getCidade());
-                existingUsuario.setEstado(usuarioPCDDetails.getEstado());
-                existingUsuario.setCep(usuarioPCDDetails.getCep());
-
-                
-                UsuarioPCD updatedUsuario = usuarioPCDService.saveUsuarioPCD(existingUsuario);
-                return ResponseEntity.ok(updatedUsuario);
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+            UsuarioPCD updatedUsuario = usuarioPCDService.updateUsuarioPCDById(id, usuarioPCDRequestDTO); 
+            return ResponseEntity.ok(new UsuarioPCDResponseDTO(updatedUsuario));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -115,9 +106,8 @@ public class UsuarioPCDController {
 
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteUsuarioPCD(@PathVariable Long id) {
-        
         if (usuarioPCDService.findUsuarioPCDById(id).isPresent()) {
             usuarioPCDService.deleteUsuarioPCD(id);
             return ResponseEntity.noContent().build();

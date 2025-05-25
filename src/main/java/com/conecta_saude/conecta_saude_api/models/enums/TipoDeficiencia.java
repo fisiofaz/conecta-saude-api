@@ -6,5 +6,7 @@ public enum TipoDeficiencia {
     AUDITIVA,
     INTELECTUAL,
     MULTIPLA,
+    TRANSTORNO_MENTAL,
+    AUTISMO,
     OUTRA
 }

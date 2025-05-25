@@ -6,9 +6,6 @@ import java.time.LocalTime;
 
 public class AgendamentoRequestDTO {
 
-    @NotNull(message = "O ID do usuário PCD é obrigatório.")
-    private Long usuarioPcdId;
-
     @NotNull(message = "O ID do profissional de saúde é obrigatório.")
     private Long profissionalSaudeId;
 
@@ -20,15 +17,7 @@ public class AgendamentoRequestDTO {
 
     private String observacoesUsuario;
 
-    // Getters e Setters
-    public Long getUsuarioPcdId() {
-        return usuarioPcdId;
-    }
-
-    public void setUsuarioPcdId(Long usuarioPcdId) {
-        this.usuarioPcdId = usuarioPcdId;
-    }
-
+       
     public Long getProfissionalSaudeId() {
         return profissionalSaudeId;
     }
