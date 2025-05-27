@@ -9,6 +9,8 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.fasterxml.jackson.annotation.JsonIgnore; 
+import com.fasterxml.jackson.annotation.JsonProperty; 
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -92,7 +94,9 @@ public abstract class User implements UserDetails {
     public void setEmail(String email) {
         this.email = email;
     }
-
+    
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Override
     public String getPassword() { 
         return password;
     }
@@ -165,29 +169,34 @@ public abstract class User implements UserDetails {
                ", enabled=" + enabled +
                '}';
     }
-
+    
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {        
         return roles.stream()
         		.map(role -> new SimpleGrantedAuthority(role.getName()))  
                 .toList(); 
     }
-
+    
+    @JsonIgnore
     @Override
     public String getUsername() {        
         return email;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {        
         return true;
     }
-
+    
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-
+    
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {       
         return true;

@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -44,22 +45,26 @@ public class SecurityConfiguration {
         http
             .csrf(csrf -> csrf.disable()) 
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
-            .authorizeHttpRequests(auth -> auth                
-                .requestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/register/pcd",
-                    "/api/auth/register/profissional",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/swagger-resources/**",
-                    "/webjars/**"
-                    
-                ).permitAll()
-                
-                .requestMatchers("/api/users/**").hasAnyRole("USER", "USUARIO_PCD", "PROFISSIONAL")
-                
-                .anyRequest().authenticated() 
-            )
+            .authorizeHttpRequests(auth -> auth
+            	    .requestMatchers(
+            	        "/api/auth/login",
+            	        "/api/auth/register/pcd",
+            	        "/api/auth/register/profissional",
+            	        "/swagger-ui/**",
+            	        "/v3/api-docs/**",
+            	        "/swagger-resources/**",
+            	        "/webjars/**"
+            	    ).permitAll() 
+
+            	    
+            	    .requestMatchers("/api/users/me").authenticated() 
+            	    .requestMatchers("/api/users/**").hasRole("ADMIN")             	    
+            	    
+            	    .requestMatchers(HttpMethod.GET, "/api/profissionais/{id}").permitAll()
+            	    .requestMatchers(HttpMethod.GET, "/api/profissionais/search/**").permitAll() 
+            	    
+            	    .anyRequest().authenticated() 
+            	)
             .sessionManagement(session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
