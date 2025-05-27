@@ -12,12 +12,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @Component 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
+	
+	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class); 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService; 
 
@@ -49,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            System.out.println("DEBUG - User " + userDetails.getUsername() + " loaded with Authorities: " + userDetails.getAuthorities());
+            logger.debug("User {} loaded with Authorities: {}", userDetails.getUsername(), userDetails.getAuthorities());
             
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

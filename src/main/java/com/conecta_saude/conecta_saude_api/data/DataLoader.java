@@ -39,5 +39,12 @@ public class DataLoader implements CommandLineRunner {
             roleRepository.save(userRole);
             System.out.println("ROLE_USER criada no banco de dados.");
         }
+        
+        if (roleRepository.findByName("ROLE_ADMIN").isEmpty()) {
+            Role adminRole = new Role();
+            adminRole.setName("ROLE_ADMIN");
+            roleRepository.save(adminRole);
+            System.out.println("ROLE_ADMIN criada no banco de dados.");
+        }
     }
 }
