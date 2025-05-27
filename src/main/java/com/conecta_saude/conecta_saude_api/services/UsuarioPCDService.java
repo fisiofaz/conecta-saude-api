@@ -18,13 +18,14 @@ import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
 
 
 
+
 @Service
 public class UsuarioPCDService {
 
-    private final UsuarioPCDRepository usuarioPCDRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
+	private final UsuarioPCDRepository usuarioPCDRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final RoleRepository roleRepository;
+	private final UserRepository userRepository;	
 
     @Autowired
     public UsuarioPCDService(UsuarioPCDRepository usuarioPCDRepository,
