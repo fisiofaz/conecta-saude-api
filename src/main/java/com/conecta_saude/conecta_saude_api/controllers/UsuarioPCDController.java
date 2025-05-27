@@ -17,10 +17,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO;
 
 import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDResponseDTO;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/usuarios-pcd")
@@ -84,9 +87,10 @@ public class UsuarioPCDController {
 
     
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<UsuarioPCDResponseDTO> createUsuarioPCD(@RequestBody UsuarioPCDResponseDTO usuarioPCDRequestDTO) {        
-        UsuarioPCD savedUsuario = usuarioPCDService.createUsuarioPCD(usuarioPCDRequestDTO);
+    @PreAuthorize("hasRole('ROLE_ADMIN')") 
+    public ResponseEntity<UsuarioPCDResponseDTO> createUsuarioPCD(
+            @Valid @RequestBody UsuarioPCDRegistrationDTO registrationDTO) {         
+        UsuarioPCD savedUsuario = usuarioPCDService.registerUsuarioPCD(registrationDTO); 
         return ResponseEntity.status(HttpStatus.CREATED).body(new UsuarioPCDResponseDTO(savedUsuario));
     }
 

@@ -7,7 +7,6 @@ import java.time.LocalDate;
 public record UsuarioPCDResponseDTO(
     Long id,
     String email,
-    String password,
     String nome,
     String sobrenome,
     String telefone,
@@ -23,7 +22,6 @@ public record UsuarioPCDResponseDTO(
         this(
             usuario.getId(),
             usuario.getEmail(),
-            usuario.getPassword(),
             usuario.getNome(),
             usuario.getSobrenome(),
             usuario.getTelefone(),
