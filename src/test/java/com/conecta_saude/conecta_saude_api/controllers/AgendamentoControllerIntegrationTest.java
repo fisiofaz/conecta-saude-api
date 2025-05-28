@@ -42,6 +42,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -211,5 +212,47 @@ class AgendamentoControllerIntegrationTest {
                 .andExpect(jsonPath("$[1].usuarioPcdId").value(pcd1Salvo.getId())) 
                 .andExpect(jsonPath("$[0].observacoesUsuario").value("Consulta de rotina PCD1")) 
                 .andExpect(jsonPath("$[1].observacoesUsuario").value("Retorno PCD1"));
+    }
+    
+    @Test
+    void quandoCriarAgendamentoParaProfissionalInexistente_entaoRetornaStatusNotFound() throws Exception {
+       
+        UsuarioPCDRegistrationDTO pcdDtoParaEsteTeste = new UsuarioPCDRegistrationDTO(
+                "pcd.profinexistente@example.com", "senha123", "PCD Prof", "Inexistente", "333333333",
+                LocalDate.of(1993, 3, 3), TipoDeficiencia.FISICA, 
+                "Nenhuma", "Rua C, 3", "Cidade C", "CC", "30000-003"
+        );
+        usuarioPCDService.registerUsuarioPCD(pcdDtoParaEsteTeste);
+
+        AuthenticationRequest loginRequest = new AuthenticationRequest(pcdDtoParaEsteTeste.email(), "senha123");
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseString = loginResult.getResponse().getContentAsString();
+        AuthenticationResponse authResponse = objectMapper.readValue(responseString, AuthenticationResponse.class);
+        String pcdUserToken = authResponse.getToken();
+
+        Long idProfissionalInexistente = 9999L;
+        AgendamentoRequestDTO agendamentoRequestDTO = new AgendamentoRequestDTO();
+        agendamentoRequestDTO.setProfissionalSaudeId(idProfissionalInexistente);
+        agendamentoRequestDTO.setDataAgendamento(LocalDate.now().plusDays(10));
+        agendamentoRequestDTO.setHoraAgendamento(LocalTime.of(15, 0));
+        agendamentoRequestDTO.setObservacoesUsuario("Tentando agendar com profissional fantasma.");
+
+        // Act & Assert
+        MvcResult result = mockMvc.perform(post("/api/agendamentos") 
+                .header("Authorization", "Bearer " + pcdUserToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(agendamentoRequestDTO)))
+                .andExpect(status().isNotFound()) 
+                .andDo(print()) 
+                .andReturn(); 
+
+        String errorMessage = result.getResponse().getErrorMessage();
+        assertNotNull(errorMessage, "A mensagem de erro não deveria ser nula.");
+        assertEquals("Profissional de Saúde não encontrado.", errorMessage, "A mensagem de erro não corresponde.");
+
     }
 }
