@@ -5,12 +5,19 @@ import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationRequest;
 import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationResponse;
 import com.conecta_saude.conecta_saude_api.dto.ProfissionalDeSaudeRegistrationDTO; 
 import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO; 
-
 import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
 import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
 import com.conecta_saude.conecta_saude_api.security.jwt.JwtService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation; 
+import io.swagger.v3.oas.annotations.media.Content; 
+import io.swagger.v3.oas.annotations.media.Schema; 
+import io.swagger.v3.oas.annotations.responses.ApiResponse; 
+import io.swagger.v3.oas.annotations.responses.ApiResponses; 
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Autenticação", description = "Endpoints para registro e login de usuários no sistema Conecta Saúde.")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -42,6 +50,18 @@ public class AuthController {
         this.profissionalDeSaudeService = profissionalDeSaudeService;
     }
 
+    
+    @Operation(summary = "Autentica um usuário", 
+            description = "Realiza a autenticação do usuário com base no email e senha fornecidos. Retorna um token JWT em caso de sucesso.") 
+    @ApiResponses(value = { 
+     @ApiResponse(responseCode = "200", description = "Autenticação bem-sucedida",
+                  content = { @Content(mediaType = "application/json",
+                                       schema = @Schema(implementation = AuthenticationResponse.class)) }),
+     @ApiResponse(responseCode = "401", description = "Credenciais inválidas (email ou senha incorretos)",
+                  content = { @Content(mediaType = "application/json",
+                                       schema = @Schema(implementation = AuthenticationResponse.class)) }), 
+     @ApiResponse(responseCode = "400", description = "Requisição inválida (ex: campos do DTO ausentes ou malformatados)"), 
+ })
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody @Valid AuthenticationRequest request) {
         try {

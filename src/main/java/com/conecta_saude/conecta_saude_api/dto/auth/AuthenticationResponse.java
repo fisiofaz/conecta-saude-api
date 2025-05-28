@@ -1,9 +1,15 @@
 package com.conecta_saude.conecta_saude_api.dto.auth;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class AuthenticationResponse {
 
-    private String token;
-    private String message; 
+	@Schema(description = "Token JWT gerado após autenticação bem-sucedida.", 
+            example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbk...")
+	private String token;
+    
+	@Schema(description = "Mensagem indicando o resultado da autenticação.", example = "Autenticação bem-sucedida!")
+	private String message; 
 
     public AuthenticationResponse(String token) {
         this.token = token;
