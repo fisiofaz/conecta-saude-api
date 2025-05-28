@@ -1,27 +1,33 @@
 package com.conecta_saude.conecta_saude_api.services;
 
-import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO;
-import com.conecta_saude.conecta_saude_api.models.Role;
-import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
-import com.conecta_saude.conecta_saude_api.models.enums.TipoDeficiencia; 
-import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
-import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
-import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Collections; 
 
-import static org.junit.jupiter.api.Assertions.*; 
-import static org.mockito.Mockito.*; 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO;
+import com.conecta_saude.conecta_saude_api.models.Role;
+import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
+import com.conecta_saude.conecta_saude_api.models.enums.TipoDeficiencia;
+import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
+import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
+import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository; 
 
 //@ExtendWith(MockitoExtension.class) 
 class UsuarioPCDServiceTest {
