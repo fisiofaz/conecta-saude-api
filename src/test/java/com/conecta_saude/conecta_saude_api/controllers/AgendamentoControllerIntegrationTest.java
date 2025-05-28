@@ -15,7 +15,7 @@ import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
 import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository;
 import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
 import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
-import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService; // Vamos usar o service para registrar o PCD programaticamente
+import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService; 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +31,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -154,5 +158,58 @@ class AgendamentoControllerIntegrationTest {
         assertEquals(agendamentoRequestDTO.getDataAgendamento(), agendamentoSalvo.getDataAgendamento());
         assertEquals(agendamentoRequestDTO.getHoraAgendamento(), agendamentoSalvo.getHoraAgendamento());
         assertEquals(StatusAgendamento.PENDENTE, agendamentoSalvo.getStatus());
+    }
+    
+    @Test
+    void quandoPCDLogadoListaAgendamentos_entaoRetornaApenasSeusAgendamentosComStatusOk() throws Exception {
+        
+        String pcd1RawPassword = "senhaPCD1";
+        UsuarioPCDRegistrationDTO pcd1Dto = new UsuarioPCDRegistrationDTO(
+                "pcd1.lista@example.com", pcd1RawPassword, "PCD Um", "Lista", "111111111",
+                LocalDate.of(1990, 1, 1), TipoDeficiencia.VISUAL, "Nenhuma",
+                "Rua A, 1", "Cidade A", "AA", "10000-001"
+        );
+        UsuarioPCD pcd1Salvo = usuarioPCDService.registerUsuarioPCD(pcd1Dto); 
+
+        UsuarioPCDRegistrationDTO pcd2Dto = new UsuarioPCDRegistrationDTO(
+                "pcd2.outros@example.com", "senhaPCD2", "PCD Dois", "Outros", "222222222",
+                LocalDate.of(1992, 2, 2), TipoDeficiencia.AUDITIVA, "Nenhuma",
+                "Rua B, 2", "Cidade B", "BB", "20000-002"
+        );
+        UsuarioPCD pcd2Salvo = usuarioPCDService.registerUsuarioPCD(pcd2Dto);
+
+        Agendamento ag1PCD1 = new Agendamento(pcd1Salvo, profissionalDeTeste,
+                LocalDate.now().plusDays(5), LocalTime.of(10, 0), "Consulta de rotina PCD1");
+        agendamentoRepository.save(ag1PCD1);
+
+        Agendamento ag2PCD1 = new Agendamento(pcd1Salvo, profissionalDeTeste,
+                LocalDate.now().plusDays(6), LocalTime.of(11, 0), "Retorno PCD1");
+        agendamentoRepository.save(ag2PCD1);
+
+        Agendamento ag1PCD2 = new Agendamento(pcd2Salvo, profissionalDeTeste,
+                LocalDate.now().plusDays(7), LocalTime.of(14, 0), "Consulta PCD2");
+        agendamentoRepository.save(ag1PCD2);
+
+
+        AuthenticationRequest loginRequestPCD1 = new AuthenticationRequest(pcd1Dto.email(), pcd1RawPassword);
+        MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequestPCD1)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseString = loginResult.getResponse().getContentAsString();
+        AuthenticationResponse authResponse = objectMapper.readValue(responseString, AuthenticationResponse.class);
+        String pcd1Token = authResponse.getToken();
+
+
+        mockMvc.perform(get("/api/agendamentos") 
+                .header("Authorization", "Bearer " + pcd1Token)) 
+                // Assert
+                .andExpect(status().isOk()) 
+                .andExpect(jsonPath("$", hasSize(2))) 
+                .andExpect(jsonPath("$[0].usuarioPcdId").value(pcd1Salvo.getId())) 
+                .andExpect(jsonPath("$[1].usuarioPcdId").value(pcd1Salvo.getId())) 
+                .andExpect(jsonPath("$[0].observacoesUsuario").value("Consulta de rotina PCD1")) 
+                .andExpect(jsonPath("$[1].observacoesUsuario").value("Retorno PCD1"));
     }
 }
