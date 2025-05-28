@@ -1,12 +1,18 @@
 package com.conecta_saude.conecta_saude_api.services;
 
 
-import com.conecta_saude.conecta_saude_api.models.Agendamento;
-import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
-import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
-import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
-import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,15 +21,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Optional;
-
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import com.conecta_saude.conecta_saude_api.models.Agendamento;
+import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
+import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
+import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
+import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
 
 @ExtendWith(MockitoExtension.class)
 class AgendamentoServiceTest {
@@ -152,4 +154,31 @@ class AgendamentoServiceTest {
         verify(agendamentoRepository, never()).save(any(Agendamento.class));
     }
    
+    void quandoCriarAgendamentoMasProfissionalNaoEncontrado_entaoDeveLancarRuntimeException() {
+        
+        when(profissionalDeSaudeService.findProfissionalDeSaudeById(profissionalId))
+                .thenReturn(Optional.empty());
+       
+        RuntimeException exceptionLancada = assertThrows(RuntimeException.class, () -> {
+            
+            agendamentoService.createAgendamento(
+                    mockUsuarioPCD,
+                    profissionalId,
+                    dataAgendamento,
+                    horaAgendamento,
+                    observacoesUsuario
+            );
+        });
+       
+        assertEquals("Profissional de Saúde não encontrado.", exceptionLancada.getMessage(),
+                "A mensagem da exceção para profissional não encontrado não é a esperada.");
+
+       
+        verify(profissionalDeSaudeService, times(1)).findProfissionalDeSaudeById(profissionalId);
+        
+        verify(agendamentoRepository, never())
+                .findByProfissionalSaudeAndDataAgendamentoAndHoraAgendamento(
+                        any(ProfissionalDeSaude.class), any(LocalDate.class), any(LocalTime.class));
+        verify(agendamentoRepository, never()).save(any(Agendamento.class));
+    }
 }
