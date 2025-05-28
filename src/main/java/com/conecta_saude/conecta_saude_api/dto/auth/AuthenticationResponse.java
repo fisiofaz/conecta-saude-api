@@ -10,6 +10,9 @@ public class AuthenticationResponse {
     
 	@Schema(description = "Mensagem indicando o resultado da autenticação.", example = "Autenticação bem-sucedida!")
 	private String message; 
+	
+	public AuthenticationResponse() {
+    }
 
     public AuthenticationResponse(String token) {
         this.token = token;
@@ -21,7 +24,6 @@ public class AuthenticationResponse {
         this.message = message;
     }
 
-    // Getters e Setters
     public String getToken() {
         return token;
     }
