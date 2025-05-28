@@ -14,7 +14,15 @@ import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
 import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository; 
 import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository; 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation; 
+import io.swagger.v3.oas.annotations.media.Content; 
+import io.swagger.v3.oas.annotations.media.Schema; 
+import io.swagger.v3.oas.annotations.responses.ApiResponse; 
+import io.swagger.v3.oas.annotations.responses.ApiResponses; 
+
 import jakarta.validation.Valid; 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,8 +32,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Tag(name = "Agendamentos", description = "Endpoints para gerenciar agendamentos de consultas entre usuários PCD e profissionais de saúde.")
 @RestController
 @RequestMapping("/api/agendamentos")
 public class AgendamentoController {
@@ -69,7 +79,20 @@ public class AgendamentoController {
         );
     }
 
-    
+    @Operation(summary = "Cria um novo agendamento",
+            description = "Permite que um usuário PCD autenticado solicite um novo agendamento com um profissional de saúde.") 
+    @ApiResponses(value = { // NOVA ANOTAÇÃO
+    @ApiResponse(responseCode = "201", description = "Agendamento criado com sucesso",
+                  content = { @Content(mediaType = "application/json",
+                                       schema = @Schema(implementation = AgendamentoResponseDTO.class)) }),
+     @ApiResponse(responseCode = "400", description = "Requisição inválida (ex: dados ausentes, horário conflitante)",
+                  content = { @Content(mediaType = "application/json",
+                                       schema = @Schema(implementation = Map.class)) }), 
+     @ApiResponse(responseCode = "401", description = "Não autenticado"),
+     @ApiResponse(responseCode = "403", description = "Não autorizado (somente usuário PCD pode criar)"),
+     @ApiResponse(responseCode = "404", description = "Profissional de saúde não encontrado"),
+     @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+ })
     @PostMapping
     @PreAuthorize("hasRole('USUARIO_PCD')") 
     public ResponseEntity<AgendamentoResponseDTO> createAgendamento(@Valid @RequestBody AgendamentoRequestDTO requestDTO) {
