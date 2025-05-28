@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post; 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status; 
@@ -235,5 +236,21 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.token").isNotEmpty()) 
                 .andExpect(jsonPath("$.message").value("Autenticação bem-sucedida!")); 
 
+    }
+    
+    @Test
+    void quandoLoginComCredenciaisInvalidas_entaoRetornaStatusUnauthorizedEMensagemDeErro() throws Exception {
+        
+        AuthenticationRequest loginRequestComErro = new AuthenticationRequest(
+                "usuario.nao.existe@example.com",
+                "senhaSuperErrada"
+        );
+
+        mockMvc.perform(post("/api/auth/login") 
+                .contentType(MediaType.APPLICATION_JSON) 
+                .content(objectMapper.writeValueAsString(loginRequestComErro))) 
+                .andExpect(status().isUnauthorized()) 
+                .andExpect(jsonPath("$.token").value(nullValue())) 
+                .andExpect(jsonPath("$.message").value("Credenciais inválidas.")); 
     }
 }
