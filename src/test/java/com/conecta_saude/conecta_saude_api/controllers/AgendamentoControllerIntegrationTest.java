@@ -204,8 +204,7 @@ class AgendamentoControllerIntegrationTest {
 
 
         mockMvc.perform(get("/api/agendamentos") 
-                .header("Authorization", "Bearer " + pcd1Token)) 
-                // Assert
+                .header("Authorization", "Bearer " + pcd1Token))                 
                 .andExpect(status().isOk()) 
                 .andExpect(jsonPath("$", hasSize(2))) 
                 .andExpect(jsonPath("$[0].usuarioPcdId").value(pcd1Salvo.getId())) 
@@ -242,17 +241,18 @@ class AgendamentoControllerIntegrationTest {
         agendamentoRequestDTO.setObservacoesUsuario("Tentando agendar com profissional fantasma.");
 
         // Act & Assert
-        MvcResult result = mockMvc.perform(post("/api/agendamentos") 
+        mockMvc.perform(post("/api/agendamentos")
                 .header("Authorization", "Bearer " + pcdUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(agendamentoRequestDTO)))
                 .andExpect(status().isNotFound()) 
-                .andDo(print()) 
-                .andReturn(); 
+                .andDo(print()) // 
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("Profissional de Saúde não encontrado."))
+                .andExpect(jsonPath("$.path").value("/api/agendamentos"));
 
-        String errorMessage = result.getResponse().getErrorMessage();
-        assertNotNull(errorMessage, "A mensagem de erro não deveria ser nula.");
-        assertEquals("Profissional de Saúde não encontrado.", errorMessage, "A mensagem de erro não corresponde.");
+       
 
     }
 }
