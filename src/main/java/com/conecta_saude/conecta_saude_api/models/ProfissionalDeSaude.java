@@ -24,8 +24,8 @@ public class ProfissionalDeSaude extends User {
 	 @Column(name = "telefone")
 	 private String telefone;
 
-    @Column(nullable = false)
-    private String especialidade;
+	 @Column(nullable = true)
+	 private String especialidade;
 
     @Column(name = "crm_crp_outros", unique = true)
     private String crmCrpOutros;
