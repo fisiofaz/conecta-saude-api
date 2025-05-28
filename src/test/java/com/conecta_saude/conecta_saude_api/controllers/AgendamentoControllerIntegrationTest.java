@@ -1,6 +1,8 @@
 package com.conecta_saude.conecta_saude_api.controllers;
 
 import com.conecta_saude.conecta_saude_api.dto.AgendamentoRequestDTO;
+import com.conecta_saude.conecta_saude_api.dto.AgendamentoUpdateStatusDTO;
+import com.conecta_saude.conecta_saude_api.dto.ProfissionalDeSaudeRegistrationDTO;
 import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO;
 import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationRequest;
 import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationResponse;
@@ -15,6 +17,7 @@ import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
 import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository;
 import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
 import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
+import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
 import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService; 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +43,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -68,6 +72,9 @@ class AgendamentoControllerIntegrationTest {
 
     @Autowired
     private ProfissionalDeSaudeRepository profissionalDeSaudeRepository; 
+    
+    @Autowired 
+    private ProfissionalDeSaudeService profissionalDeSaudeService;
 
     @Autowired
     private AgendamentoRepository agendamentoRepository; 
@@ -246,13 +253,71 @@ class AgendamentoControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(agendamentoRequestDTO)))
                 .andExpect(status().isNotFound()) 
-                .andDo(print()) // 
+                .andDo(print())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Profissional de Saúde não encontrado."))
-                .andExpect(jsonPath("$.path").value("/api/agendamentos"));
+                .andExpect(jsonPath("$.path").value("/api/agendamentos"));      
 
+    }
+    
+    @Test
+    void quandoProfissionalConfirmaAgendamento_entaoStatusDeveSerAtualizadoParaConfirmado() throws Exception {
+        
+        String profEmail = "prof.confirma@example.com";
+        String profRawPassword = "profSenhaConfirma";
+        ProfissionalDeSaudeRegistrationDTO profRegDto = new ProfissionalDeSaudeRegistrationDTO(
+                profEmail, profRawPassword, "Prof.", "Confirma", "11987654321",
+                "Clínica Geral", "CRM/SP CONF123", "Rua Alfa", "São Paulo", "SP", "01000-000",
+                null, null, null, null, null
+        );
        
+        ProfissionalDeSaude profSalvo = profissionalDeSaudeService.registerProfissionalDeSaude(profRegDto);
+        assertNotNull(profSalvo.getId());
 
+        AuthenticationRequest loginRequestProf = new AuthenticationRequest(profEmail, profRawPassword);
+        MvcResult loginResultProf = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequestProf)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String authResponseProfString = loginResultProf.getResponse().getContentAsString();
+        AuthenticationResponse authResponseProf = objectMapper.readValue(authResponseProfString, AuthenticationResponse.class);
+        String profToken = authResponseProf.getToken();
+        assertNotNull(profToken, "Token do profissional não deveria ser nulo.");
+
+        String pcdEmail = "pcd.agenda.confirma@example.com";
+        String pcdRawPassword = "pcdSenhaConfirma";
+        UsuarioPCDRegistrationDTO pcdRegDto = new UsuarioPCDRegistrationDTO(
+                pcdEmail, pcdRawPassword, "PCD", "Confirma", "11912345678",
+                LocalDate.of(1995, 5, 5), TipoDeficiencia.FISICA, "Nenhuma",
+                "Rua Beta", "Cidade B", "BA", "20000-000"
+        );
+        UsuarioPCD pcdSalvo = usuarioPCDService.registerUsuarioPCD(pcdRegDto);
+        assertNotNull(pcdSalvo.getId());
+
+        Agendamento agendamentoPendente = new Agendamento(pcdSalvo, profSalvo,
+                LocalDate.now().plusDays(10), LocalTime.of(10, 0), "Agendamento para confirmar");
+        agendamentoPendente = agendamentoRepository.save(agendamentoPendente); 
+        assertNotNull(agendamentoPendente.getId(), "Agendamento pendente deve ter ID.");
+        assertEquals(StatusAgendamento.PENDENTE, agendamentoPendente.getStatus());
+
+        AgendamentoUpdateStatusDTO updateStatusDTO = new AgendamentoUpdateStatusDTO();
+        updateStatusDTO.setNewStatus(StatusAgendamento.CONFIRMADO);
+        updateStatusDTO.setObservacoesProfissional("Agendamento confirmado com sucesso!");
+
+        mockMvc.perform(patch("/api/agendamentos/{id}/status", agendamentoPendente.getId()) 
+                .header("Authorization", "Bearer " + profToken) 
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateStatusDTO)))
+                .andExpect(status().isOk()) 
+                .andExpect(jsonPath("$.id").value(agendamentoPendente.getId())) 
+                .andExpect(jsonPath("$.status").value(StatusAgendamento.CONFIRMADO.toString())) 
+                .andExpect(jsonPath("$.observacoesProfissional").value(updateStatusDTO.getObservacoesProfissional())); 
+
+        Optional<Agendamento> agendamentoNoBanco = agendamentoRepository.findById(agendamentoPendente.getId());
+        assertTrue(agendamentoNoBanco.isPresent(), "Agendamento deveria existir no banco.");
+        assertEquals(StatusAgendamento.CONFIRMADO, agendamentoNoBanco.get().getStatus(), "Status no banco deve ser CONFIRMADO.");
+        assertEquals(updateStatusDTO.getObservacoesProfissional(), agendamentoNoBanco.get().getObservacoesProfissional(), "Observações no banco devem ser as atualizadas.");
     }
 }
