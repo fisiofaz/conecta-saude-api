@@ -1,6 +1,14 @@
 package com.conecta_saude.conecta_saude_api.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag; 
+
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,6 +33,7 @@ import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
 
 import jakarta.validation.Valid;
 
+@Tag(name = "Usuários PCD", description = "Endpoints para gerenciamento de perfis e operações relacionadas a usuários PCD.")
 @RestController
 @RequestMapping("/api/usuarios-pcd")
 public class UsuarioPCDController {
@@ -35,7 +44,18 @@ public class UsuarioPCDController {
         this.usuarioPCDService = usuarioPCDService;
     }
 
-
+    
+    @Operation(summary = "Obtém o perfil do usuário PCD autenticado",
+            description = "Retorna os detalhes do perfil do usuário PCD que está atualmente logado.") // NOVA ANOTAÇÃO
+    @ApiResponses(value = { // NOVA ANOTAÇÃO
+    @ApiResponse(responseCode = "200", description = "Perfil do usuário PCD retornado com sucesso",
+                  content = @Content(mediaType = "application/json",
+                                     schema = @Schema(implementation = UsuarioPCDResponseDTO.class))),
+    @ApiResponse(responseCode = "401", description = "Não autenticado"),
+    @ApiResponse(responseCode = "403", description = "Não autorizado (requer autenticação como USUARIO_PCD)"),
+    @ApiResponse(responseCode = "404", description = "Usuário PCD logado não encontrado"),
+    @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_USUARIO_PCD')")
     public ResponseEntity<UsuarioPCDResponseDTO> getMyProfile() {
@@ -50,7 +70,20 @@ public class UsuarioPCDController {
         return ResponseEntity.notFound().build();
     }
 
-
+    
+    @Operation(summary = "Atualiza o perfil do usuário PCD autenticado",
+            description = "Permite que o usuário PCD logado atualize suas próprias informações de perfil.") // NOVA ANOTAÇÃO
+    @ApiResponses(value = { // NOVA ANOTAÇÃO
+    @ApiResponse(responseCode = "200", description = "Perfil do usuário PCD atualizado com sucesso",
+                  content = @Content(mediaType = "application/json",
+                                     schema = @Schema(implementation = UsuarioPCDResponseDTO.class))),
+    @ApiResponse(responseCode = "400", description = "Requisição inválida (ex: dados ausentes ou malformatados)",
+                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))),
+    @ApiResponse(responseCode = "401", description = "Não autenticado"),
+    @ApiResponse(responseCode = "403", description = "Não autorizado (requer autenticação como USUARIO_PCD)"),
+    @ApiResponse(responseCode = "404", description = "Usuário PCD logado não encontrado"),
+    @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PutMapping("/me")
     @PreAuthorize("hasRole('ROLE_USUARIO_PCD')")
     public ResponseEntity<UsuarioPCDResponseDTO> updateMyProfile(@RequestBody UsuarioPCDResponseDTO usuarioPCDRequestDTO) {

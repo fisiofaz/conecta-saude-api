@@ -2,6 +2,9 @@
 package com.conecta_saude.conecta_saude_api.dto;
 
 import com.conecta_saude.conecta_saude_api.models.enums.TipoDeficiencia;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,42 +14,40 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record UsuarioPCDRegistrationDTO(
-    @NotBlank(message = "O email é obrigatório.")
-    @Email(message = "Formato de email inválido.")
-    String email,
+		
+		@Schema(description = "Email do usuário PCD (único no sistema).", example = "maria.pcd@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotBlank @Email String email,
 
-    @NotBlank(message = "A senha é obrigatória.")
-    @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres.")
-    String password,
+	    @Schema(description = "Senha do usuário PCD (mínimo 6 caracteres).", example = "senhaSeguraPCD", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotBlank @Size(min = 6) String password,
 
-    @NotBlank(message = "O nome é obrigatório.")
-    String nome,
+	    @Schema(description = "Nome do usuário PCD.", example = "Maria", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotBlank String nome,
 
-    @NotBlank(message = "O sobrenome é obrigatório.")
-    String sobrenome,
+	    @Schema(description = "Sobrenome do usuário PCD.", example = "Souza", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotBlank String sobrenome,
 
-    @NotBlank(message = "O telefone é obrigatório.")
-    String telefone,
+	    @Schema(description = "Telefone de contato do usuário PCD.", example = "5521998765432", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotBlank String telefone,
 
-    @NotNull(message = "A data de nascimento é obrigatória.")
-    @PastOrPresent(message = "A data de nascimento não pode ser futura.")
-    LocalDate dataNascimento,
+	    @Schema(description = "Data de nascimento do usuário PCD (AAAA-MM-DD).", example = "1990-01-01", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotNull @PastOrPresent LocalDate dataNascimento,
 
-    @NotNull(message = "O tipo de deficiência é obrigatório.")
-    TipoDeficiencia tipoDeficiencia,
+	    @Schema(description = "Tipo de deficiência do usuário PCD.", implementation = TipoDeficiencia.class, requiredMode = Schema.RequiredMode.REQUIRED, example = "FISICA")
+	    @NotNull TipoDeficiencia tipoDeficiencia,
 
-    String necessidadesEspecificas,
+	    @Schema(description = "Necessidades específicas do usuário PCD (opcional).", example = "Cadeira de rodas, intérprete de libras.")
+	    String necessidadesEspecificas,
 
-    @NotBlank(message = "O endereço é obrigatório.")
-    String endereco,
+	    @Schema(description = "Endereço completo do usuário PCD.", example = "Rua das Rosas, 45 - Centro")
+	    @NotBlank String endereco,
 
-    @NotBlank(message = "A cidade é obrigatória.")
-    String cidade,
+	    @Schema(description = "Cidade do usuário PCD.", example = "Rio de Janeiro")
+	    @NotBlank String cidade,
 
-    @NotBlank(message = "O estado é obrigatório.")
-    String estado,
+	    @Schema(description = "Estado do usuário PCD (UF).", example = "RJ")
+	    @NotBlank String estado,
 
-    @NotBlank(message = "O CEP é obrigatório.")
-    @Size(min = 8, max = 9, message = "O CEP deve ter 8 ou 9 caracteres (com ou sem hífen).")
-    String cep
+	    @Schema(description = "CEP do usuário PCD.", example = "20000-000", requiredMode = Schema.RequiredMode.REQUIRED)
+	    @NotBlank @Size(min = 8, max = 9) String cep
 ) {}
