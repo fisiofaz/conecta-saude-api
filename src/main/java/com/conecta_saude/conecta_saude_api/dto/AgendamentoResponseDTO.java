@@ -1,23 +1,40 @@
 package com.conecta_saude.conecta_saude_api.dto;
 
 import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 public class AgendamentoResponseDTO {
+    
+	@Schema(description = "ID único do agendamento.", example = "100")
     private Long id;
+    @Schema(description = "ID do usuário PCD associado ao agendamento.", example = "1")
     private Long usuarioPcdId;
-    private String usuarioPcdNome; 
+    @Schema(description = "Nome completo do usuário PCD.", example = "João da Silva")
+    private String usuarioPcdNome;
+    @Schema(description = "ID do profissional de saúde associado ao agendamento.", example = "10")
     private Long profissionalSaudeId;
-    private String profissionalSaudeNome; 
-    private String profissionalSaudeEspecialidade; 
+    @Schema(description = "Nome completo do profissional de saúde.", example = "Dr(a). Maria Oliveira")
+    private String profissionalSaudeNome;
+    @Schema(description = "Especialidade do profissional de saúde.", example = "Cardiologia")
+    private String profissionalSaudeEspecialidade;
+    @Schema(description = "Data do agendamento (AAAA-MM-DD).", example = "2025-06-15")
     private LocalDate dataAgendamento;
+    @Schema(description = "Hora do agendamento (HH:MM:SS).", example = "14:30:00")
     private LocalTime horaAgendamento;
+    @Schema(description = "Status atual do agendamento.", implementation = StatusAgendamento.class, example = "PENDENTE")
     private StatusAgendamento status;
+    @Schema(description = "Observações adicionais feitas pelo usuário PCD.", example = "Tenho algumas dúvidas sobre o pós-consulta.")
     private String observacoesUsuario;
+    @Schema(description = "Observações adicionais feitas pelo profissional de saúde.", example = "Paciente deve chegar 15 min antes.")
     private String observacoesProfissional;
+    @Schema(description = "Data e hora de criação do agendamento.", example = "2025-06-01T10:00:00")
     private LocalDateTime createdAt;
+    @Schema(description = "Última data e hora de atualização do agendamento.", example = "2025-06-01T10:00:00")
     private LocalDateTime updatedAt;
 
     

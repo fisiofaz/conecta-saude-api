@@ -1,14 +1,19 @@
 package com.conecta_saude.conecta_saude_api.dto;
 
 import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import jakarta.validation.constraints.NotNull;
 
 public class AgendamentoUpdateStatusDTO {
 
-    @NotNull(message = "O novo status é obrigatório.")
+	@Schema(description = "O novo status desejado para o agendamento.", implementation = StatusAgendamento.class, requiredMode = Schema.RequiredMode.REQUIRED, example = "CONFIRMADO")
+	@NotNull(message = "O novo status é obrigatório.")
     private StatusAgendamento newStatus;
 
-    private String observacoesProfissional; 
+	@Schema(description = "Observações adicionais do profissional de saúde sobre a atualização do status.", example = "Consulta confirmada, paciente avisado.")
+	private String observacoesProfissional; 
 
     
     public StatusAgendamento getNewStatus() {

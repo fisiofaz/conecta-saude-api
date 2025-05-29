@@ -1,5 +1,24 @@
 package com.conecta_saude.conecta_saude_api.controllers;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.conecta_saude.conecta_saude_api.dto.AgendamentoRequestDTO;
 import com.conecta_saude.conecta_saude_api.dto.AgendamentoResponseDTO;
 import com.conecta_saude.conecta_saude_api.dto.AgendamentoUpdateStatusDTO;
@@ -8,32 +27,17 @@ import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
 import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
 import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
 import com.conecta_saude.conecta_saude_api.services.AgendamentoService;
-import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
 import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
+import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
 
-import com.conecta_saude.conecta_saude_api.repositories.UsuarioPCDRepository; 
-import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository; 
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Operation; 
-import io.swagger.v3.oas.annotations.media.Content; 
-import io.swagger.v3.oas.annotations.media.Schema; 
-import io.swagger.v3.oas.annotations.responses.ApiResponse; 
-import io.swagger.v3.oas.annotations.responses.ApiResponses; 
-
-import jakarta.validation.Valid; 
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import jakarta.validation.Valid;
 
 @Tag(name = "Agendamentos", description = "Endpoints para gerenciar agendamentos de consultas entre usuários PCD e profissionais de saúde.")
 @RestController
@@ -121,6 +125,16 @@ public class AgendamentoController {
         }
     }
     
+    @Operation(summary = "Lista agendamentos",
+            description = "Retorna uma lista de agendamentos. Administradores veem todos os agendamentos. Usuários PCD e Profissionais de Saúde veem apenas os seus próprios agendamentos.")
+    @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Lista de agendamentos retornada com sucesso",
+                  content = @Content(mediaType = "application/json",
+                                     array = @ArraySchema(schema = @Schema(implementation = AgendamentoResponseDTO.class)))),
+    @ApiResponse(responseCode = "401", description = "Não autenticado"),
+    @ApiResponse(responseCode = "403", description = "Não autorizado (requer autenticação como USUARIO_PCD, PROFISSIONAL ou ADMIN)"),
+    @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USUARIO_PCD', 'PROFISSIONAL')")
     public ResponseEntity<List<AgendamentoResponseDTO>> getAllAgendamentos() {
@@ -154,6 +168,17 @@ public class AgendamentoController {
         return ResponseEntity.ok(dtoList);
     }
     
+    @Operation(summary = "Busca um agendamento por ID",
+            description = "Retorna um agendamento específico. Administradores veem qualquer agendamento. Usuários PCD e Profissionais de Saúde veem apenas agendamentos aos quais estão associados.")
+    @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Agendamento encontrado com sucesso",
+                  content = @Content(mediaType = "application/json",
+                                     schema = @Schema(implementation = AgendamentoResponseDTO.class))),
+    @ApiResponse(responseCode = "401", description = "Não autenticado"),
+    @ApiResponse(responseCode = "403", description = "Não autorizado (usuário autenticado não tem permissão para acessar este agendamento)"),
+    @ApiResponse(responseCode = "404", description = "Agendamento não encontrado"),
+    @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })    
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USUARIO_PCD', 'PROFISSIONAL')")
     public ResponseEntity<AgendamentoResponseDTO> getAgendamentoById(@PathVariable Long id) {
@@ -177,7 +202,20 @@ public class AgendamentoController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar este agendamento.");
         }
     }
-
+    
+    @Operation(summary = "Atualiza o status de um agendamento",
+            description = "Permite que administradores alterem qualquer status. Profissionais de saúde podem CONFIRMAR, CANCELAR_POR_PROFISSIONAL. Usuários PCD podem CANCELAR_POR_USUARIO (somente se o status for PENDENTE).")
+    @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Status do agendamento atualizado com sucesso",
+                  content = @Content(mediaType = "application/json",
+                                     schema = @Schema(implementation = AgendamentoResponseDTO.class))),
+    @ApiResponse(responseCode = "400", description = "Requisição inválida (ex: transição de status não permitida, status ausente)",
+                  content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class))),
+    @ApiResponse(responseCode = "401", description = "Não autenticado"),
+    @ApiResponse(responseCode = "403", description = "Não autorizado (usuário não tem permissão para alterar este agendamento ou status)"),
+    @ApiResponse(responseCode = "404", description = "Agendamento não encontrado"),
+    @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_PROFISSIONAL', 'ROLE_USUARIO_PCD')") // Correção das roles
     public ResponseEntity<AgendamentoResponseDTO> updateAgendamentoStatus(
