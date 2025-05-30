@@ -1,25 +1,23 @@
 package com.conecta_saude.conecta_saude_api.controllers;
 
-import com.conecta_saude.conecta_saude_api.dto.AgendamentoRequestDTO;
-import com.conecta_saude.conecta_saude_api.dto.AgendamentoUpdateStatusDTO;
-import com.conecta_saude.conecta_saude_api.dto.ProfissionalDeSaudeRegistrationDTO;
-import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO;
-import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationRequest;
-import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationResponse;
-import com.conecta_saude.conecta_saude_api.models.Agendamento;
-import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
-import com.conecta_saude.conecta_saude_api.models.Role;
-import com.conecta_saude.conecta_saude_api.models.User;
-import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
-import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
-import com.conecta_saude.conecta_saude_api.models.enums.TipoDeficiencia;
-import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
-import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository;
-import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
-import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
-import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
-import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService; 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,22 +30,25 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.junit.jupiter.api.Assertions.*;
+import com.conecta_saude.conecta_saude_api.dto.AgendamentoRequestDTO;
+import com.conecta_saude.conecta_saude_api.dto.AgendamentoUpdateStatusDTO;
+import com.conecta_saude.conecta_saude_api.dto.ProfissionalDeSaudeRegistrationDTO;
+import com.conecta_saude.conecta_saude_api.dto.UsuarioPCDRegistrationDTO;
+import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationRequest;
+import com.conecta_saude.conecta_saude_api.dto.auth.AuthenticationResponse;
+import com.conecta_saude.conecta_saude_api.models.Agendamento;
+import com.conecta_saude.conecta_saude_api.models.ProfissionalDeSaude;
+import com.conecta_saude.conecta_saude_api.models.Role;
+import com.conecta_saude.conecta_saude_api.models.UsuarioPCD;
+import com.conecta_saude.conecta_saude_api.models.enums.StatusAgendamento;
+import com.conecta_saude.conecta_saude_api.models.enums.TipoDeficiencia;
+import com.conecta_saude.conecta_saude_api.repositories.AgendamentoRepository;
+import com.conecta_saude.conecta_saude_api.repositories.ProfissionalDeSaudeRepository;
+import com.conecta_saude.conecta_saude_api.repositories.RoleRepository;
+import com.conecta_saude.conecta_saude_api.repositories.UserRepository;
+import com.conecta_saude.conecta_saude_api.services.ProfissionalDeSaudeService;
+import com.conecta_saude.conecta_saude_api.services.UsuarioPCDService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -70,7 +71,8 @@ class AgendamentoControllerIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder; 
 
-    @Autowired
+    @SuppressWarnings("unused")
+	@Autowired
     private ProfissionalDeSaudeRepository profissionalDeSaudeRepository; 
     
     @Autowired 
