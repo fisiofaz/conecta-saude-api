@@ -50,10 +50,12 @@ public class SecurityConfiguration {
             	        "/api/auth/login",
             	        "/api/auth/register/pcd",
             	        "/api/auth/register/profissional",
+            	        "/swagger-ui.html", 
             	        "/swagger-ui/**",
             	        "/v3/api-docs/**",
             	        "/swagger-resources/**",
-            	        "/webjars/**"
+            	        "/webjars/**",
+            	        "/error" 
             	    ).permitAll() 
 
             	    

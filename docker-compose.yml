@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: conectasaude_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: P@t010803
+      MYSQL_DATABASE: conecta_saude_db
+      MYSQL_USER: springuser
+      MYSQL_PASSWORD: springpass
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - conecta-saude-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app: 
+    build:
+      context: .
+      no_cache: true
+    container_name: conectasaude_api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/conecta_saude_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Sao_Paulo
+      SPRING_DATASOURCE_USERNAME: springuser
+      SPRING_DATASOURCE_PASSWORD: springpass
+      JWT_SECRET_KEY: Ntx9k5x2Z4LGn0dFilQjb6es2b9PlrgjaQMwIF7vx74=
+      JWT_EXPIRATION_TIME: 86400000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - conecta-saude-network 
+
+volumes:
+  db_data:
+
+networks:
+  conecta-saude-network:
+    driver: bridge
